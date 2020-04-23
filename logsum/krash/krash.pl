@@ -1,22 +1,39 @@
 use strict;
 use warnings;
+use feature 'say';
+use Getopt::Long 'GetOptions';
+use Pod::Usage 'pod2usage';
 
-if (@ARGV<2) {
-    print "\nUsage:\n\n    krash.pl -a <file> <test_name>\n\n    -a Append to output file instead of overwrite\n\n";
+my $filename    = '';
+my $append      = 1;
+
+pod2usage(-verbose => 99, -sections => [qw(NAME)] ) if @ARGV < 1;
+
+GetOptions(
+    'help'          => \my $help,
+    'man'           => \my $man,
+    'append=i'      => \$append,
+    "file=s"        => \$filename,
+    "tests=s{1,}"   => \my @testnames,
+);
+pod2usage(-verbose => 99, -sections => [qw(SYNOPSIS)] ) if $help;
+pod2usage(-verbose => 99, -sections => [qw(SYNOPSIS DESCRIPTION)] ) if $man;
+
+if ($filename eq '') {
     exit;
+} else {
+    if (not -e $filename) {
+        say "File not found : [$filename]";
+        exit;
+    }
 }
 
-my $arg_str  = "@ARGV";
-my $append   = int ($arg_str=~s/-a //);
-my @args     = split / /,$arg_str;
-
-my $filename = shift @args;
-my $testname_list = join "|", @args;
+my $testname_list = join "|", @testnames;
 my $regex = qr/($testname_list)/;
 my %hash_buff;
 
 if ($append == 0) {
-    for my $test (@args) {
+    for my $test (@testnames) {
         unlink $test.'.csv';
     }
 }
@@ -174,3 +191,46 @@ while (<$FILE_INPUT>) {
 
 close $FILE_INPUT;
 
+__END__
+
+=head1 NAME
+
+krash.pl [options] --file [file] --test [testname ...]
+
+=head1 SYNOPSIS
+
+krash.pl [options] --file [file] --test [testname ...]
+
+    Options:
+    -help            brief help message
+    -append          append to output
+    -file            path of datalog file
+    -test            test parameters
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-help>
+
+ Print a brief help message and exits.
+
+=item B<-append>
+
+ Append to existing .csv file. Set to 1 by default
+
+=item B<-file>
+
+ Logsum in .datalog format
+
+=item B<-test>
+
+ Test name in stirng format under TNAME column
+
+=back
+
+=head1 DESCRIPTION
+
+B<This program> will read the input datalog file(s) and turn it into a monster.
+
+=cut

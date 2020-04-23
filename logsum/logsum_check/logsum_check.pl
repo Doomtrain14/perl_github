@@ -139,9 +139,9 @@ if ($total_error) {
     for my $errors (@error_data) {
         say $errors;
     }
-    printf ("%-25s : %d\n", "Total Error Count",$total_error);
+    printf ("%-25s : %d\n", "Total error count",$total_error);
 } else {
-    say "\nNo Error found\n";
+    say "\nNo error found\n";
 }
 
 __END__
