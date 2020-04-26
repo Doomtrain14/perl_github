@@ -3,12 +3,20 @@ use strict;
 use warnings;
 use feature 'say';
 use Cwd qw(getcwd);
+use Getopt::Long 'GetOptions';
+use Pod::Usage 'pod2usage';
 
-if (@ARGV < 1) {
-    die "Usage:\n\ttvsreies_renamer.pl <title> <opt season>\n\n";
-}
-my $title = $ARGV[0] || "Default";
-my $force_season = $ARGV[1] || '';
+pod2usage(-verbose => 99, -sections => [qw(NAME)] ) if @ARGV < 1;
+my $force_season = '';
+GetOptions(
+    'help'          => \my $help,
+    'man'           => \my $man,
+    "title=s"       => \my $title,
+    "season=s"      => \$force_season,
+);
+pod2usage(-verbose => 99, -sections => [qw(SYNOPSIS)] ) if $help;
+pod2usage(-verbose => 99, -sections => [qw(SYNOPSIS DESCRIPTION)] ) if $man;
+
 
 my $path = getcwd();
 opendir( my $DIR, $path );
@@ -64,9 +72,53 @@ while ( my $entry = readdir $DIR ) {
         if ($season eq '' or $episode eq '') {
             say "Error getting season or episode: $file";
         } else {
-            rename $file, "$title $season$episode\.$file_ext";
+            if ($file_ext =~ /srt|smi/) {
+                rename $file, "$title $season$episode\.en\.$file_ext";
+            } else {
+                rename $file, "$title $season$episode\.$file_ext";
+            }
         }
     }
     chdir $path;
 }
 closedir $DIR;
+
+__END__
+
+=head1 NAME
+
+rename_tv.pl --title ["title"] --season [#]
+
+=head1 SYNOPSIS
+
+rename_tv.pl --title ["title"] --season [#]
+
+    Options:
+    -help            brief help message
+    -title           title of the show
+    -season          force season number
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-help>
+
+ Print a brief help message and exits.
+
+=item B<-title>
+
+ Title of the show. Must be enclosed with "" if it contains spaces.
+
+=item B<-season>
+
+ Season to use if not detected
+
+=back
+
+=head1 DESCRIPTION
+
+B<This program> will read rename all video files in this format:
+B<[title] S[NN]E[NN].[file_ext]>
+
+=cut
